@@ -1,0 +1,60 @@
+{
+  "name": "steward-bot",
+  "version": "0.0.1",
+  "description": "Steward: help manage your PR flow",
+  "author": "Lin Xu <lin@lastquestion.org>",
+  "license": "MIT",
+  "repository": "https://github.com/lstquestion/steward-bot.git",
+  "homepage": "https://github.com/lstquestion/steward-bot",
+  "bugs": "https://github.com/lstquestion/steward-bot/issues",
+  "keywords": [
+    "probot",
+    "github",
+    "probot-app"
+  ],
+  "main": "./lib/index.js",
+  "scripts": {
+    "build": "tsc",
+    "build:watch": "tsc && (tsc -w --preserveWatchOutput & nodemon)",
+    "dev": "npm run build:watch",
+    "start": "probot run ./lib/index.js",
+    "lint": "prettier --write .",
+    "test": "jest && eslint --ext .js,.ts . && prettier --check .",
+    "test:watch": "jest --watch --notify --notifyMode=change --coverage"
+  },
+  "dependencies": {
+    "probot": "^9.5.3"
+  },
+  "devDependencies": {
+    "@types/jest": "^25.1.0",
+    "@types/node": "^13.1.0",
+    "@typescript-eslint/eslint-plugin": "^2.26.0",
+    "@typescript-eslint/parser": "^2.4.0",
+    "eslint": "^6.8.0",
+    "jest": "^25.2.7",
+    "nock": "^12.0.0",
+    "nodemon": "^2.0.0",
+    "prettier": "^2.0.2",
+    "smee-client": "^1.1.0",
+    "ts-jest": "^25.1.0",
+    "typescript": "^3.6.4"
+  },
+  "engines": {
+    "node": ">= 12"
+  },
+  "jest": {
+    "testEnvironment": "node"
+  },
+  "prettier": {
+    "printWidth": 120
+  },
+  "eslintConfig": {
+    "parser": "@typescript-eslint/parser",
+    "plugins": [
+      "@typescript-eslint"
+    ],
+    "extends": [
+      "plugin:@typescript-eslint/recommended"
+    ]
+  }
+}
