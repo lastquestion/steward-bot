@@ -30,6 +30,7 @@ master breaking, so that the bot stops merging PRs.
 
 * Cached github responses: fast and never hits the rate limit
 
+## Development
 ### Dev notes
 
 Node 12, yarn, prettier.
@@ -40,6 +41,7 @@ Node 12, yarn, prettier.
 * Better `/merge` UI
 * Allow custom predictors to better choose PRs in a train, e.g. by checking CI predicted build time
   left, for example.
+* Tests
 
 ### License
 
