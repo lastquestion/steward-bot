@@ -164,11 +164,15 @@ export = (cacheState: CacheState, app: Application): void => {
         state.proposedTrain = newTrain;
       }
     } catch (e) {
-      context.log(e);
+      context.log.error(e);
     }
   };
 
-  const logAndEnqueue = (job: ((context: Context) => Promise<void>) | (() => Promise<void>), context: Context) => {
+  const logAndEnqueue = (
+    job: ((context: Context) => Promise<void>) | (() => Promise<void>),
+    type: string,
+    context: Context
+  ) => {
     if (!state.enabled) {
       context.log("not enabled, bailing");
       return;
@@ -180,7 +184,7 @@ export = (cacheState: CacheState, app: Application): void => {
 
     state.queue.add(async () => {
       state.decisionLog = [];
-      log(context, `request at: ${requestDate} processed at ${new Date()}`);
+      log(context, `request at: ${requestDate} processed at ${new Date()} event type ${type}`);
       await job(context);
       log(context, "request complete");
     });
@@ -191,7 +195,7 @@ export = (cacheState: CacheState, app: Application): void => {
     // just find the mergeability of all prs in the train every time
     // and rely on the fact that we cache the REST calls so it's not deathly
     // inefficient.
-    logAndEnqueue(checkMergeTrain, context);
+    logAndEnqueue(checkMergeTrain, "status", context);
   });
 
   app.on("pull_request.labeled", async (context: Context) => {
@@ -202,12 +206,16 @@ export = (cacheState: CacheState, app: Application): void => {
 
     if (label.name == "ready to merge") {
       context.log(`PR labeled for merge ${number}`);
-      logAndEnqueue(async () => {
-        if (state.proposedTrain.length == 0) {
-          log(context, `PR ${number} labeled; proposed trains empty, starting`);
-          await checkMergeTrain(context);
-        }
-      }, context);
+      logAndEnqueue(
+        async () => {
+          if (state.proposedTrain.length == 0) {
+            log(context, `PR ${number} labeled; proposed trains empty, starting`);
+            await checkMergeTrain(context);
+          }
+        },
+        "labeled",
+        context
+      );
     }
   });
 
@@ -218,14 +226,18 @@ export = (cacheState: CacheState, app: Application): void => {
     } = context.payload;
 
     if (label.name == "ready to merge") {
-      logAndEnqueue(async () => {
-        if (state.proposedTrain.indexOf(number) != -1) {
-          log(context, `PR ${number} was part of proposed train ${state.proposedTrain}, but was unlabeled. Removing`);
-          state.proposedTrain = state.proposedTrain.filter((id) => id != number);
+      logAndEnqueue(
+        async () => {
+          if (state.proposedTrain.indexOf(number) != -1) {
+            log(context, `PR ${number} was part of proposed train ${state.proposedTrain}, but was unlabeled. Removing`);
+            state.proposedTrain = state.proposedTrain.filter((id) => id != number);
 
-          await checkMergeTrain(context);
-        }
-      }, context);
+            await checkMergeTrain(context);
+          }
+        },
+        "unlabeled",
+        context
+      );
     }
   });
 };
