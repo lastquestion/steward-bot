@@ -23,6 +23,9 @@ const config = {
 };
 
 Probot.prototype.load = ((originalLoad) => {
+  // tell us who you are
+  console.log('I AM THE EVIL MERGE BOT OF DOOOOOOM!!! FEAR ME WHILE I MERGE YOUR PRS!!!');
+
   // cast away...
   return function (this: Probot, app: string | ApplicationFunction): Application {
     //eslint-disable-next-line @typescript-eslint/no-explicit-any
