@@ -247,8 +247,21 @@ describe("steward-bot: merge", () => {
       expect(appState.proposedTrain).toEqual([166]);
     });
 
-    test("does nothing if the train is already running", async () => {
+    test("does nothing if the train is already running and the PR is still building", async () => {
       appState.proposedTrain = [123];
+
+      nock("https://api.github.com")
+        .get("/repos/repo-owner/repo-name/issues?state=open&labels=ready%20to%20merge&sort=created&direction=asc")
+        .reply(200, fixtureIssueList(166));
+
+      nock("https://api.github.com")
+        .get("/repos/repo-owner/repo-name/pulls/166")
+        .reply(200, fixturePR({ number: 166, mergeable_state: "unknown", labelled: true }));
+
+      nock("https://api.github.com")
+        .get("/repos/repo-owner/repo-name/commits/pr-166-sha-head/status")
+        .reply(200, fixtureCombinedStatus("pending"));
+
       await probot.receive(
         wrapIntoRequest("pull_request.labeled", {
           pull_request: {
@@ -263,6 +276,70 @@ describe("steward-bot: merge", () => {
 
       await appState.queue.onIdle();
       expect(appState.proposedTrain).toEqual([123]);
+    });
+
+    test("adds to the train if build is green", async () => {
+      appState.proposedTrain = [123];
+
+      nock("https://api.github.com")
+        .get("/repos/repo-owner/repo-name/issues?state=open&labels=ready%20to%20merge&sort=created&direction=asc")
+        .reply(200, fixtureIssueList(166));
+
+      nock("https://api.github.com")
+        .get("/repos/repo-owner/repo-name/pulls/166")
+        .reply(200, fixturePR({ number: 166, mergeable_state: "clean", labelled: true }));
+
+      nock("https://api.github.com")
+        .get("/repos/repo-owner/repo-name/commits/pr-166-sha-head/status")
+        .reply(200, fixtureCombinedStatus("pending"));
+
+      await probot.receive(
+        wrapIntoRequest("pull_request.labeled", {
+          pull_request: {
+            number: 166,
+            mergeable_state: 'clean'
+          },
+          label: {
+            name: "ready to merge",
+          },
+          ...fixtureRepository(),
+        })
+      );
+
+      await appState.queue.onIdle();
+      expect(appState.proposedTrain).toEqual([123, 166]);
+    });
+
+    test("if the pr is already on the train, do nothing", async () => {
+      appState.proposedTrain = [123, 166];
+
+      nock("https://api.github.com")
+        .get("/repos/repo-owner/repo-name/issues?state=open&labels=ready%20to%20merge&sort=created&direction=asc")
+        .reply(200, fixtureIssueList(166));
+
+      nock("https://api.github.com")
+        .get("/repos/repo-owner/repo-name/pulls/166")
+        .reply(200, fixturePR({ number: 166, mergeable_state: "clean", labelled: true }));
+
+      nock("https://api.github.com")
+        .get("/repos/repo-owner/repo-name/commits/pr-166-sha-head/status")
+        .reply(200, fixtureCombinedStatus("pending"));
+
+      await probot.receive(
+        wrapIntoRequest("pull_request.labeled", {
+          pull_request: {
+            number: 166,
+            mergeable_state: 'clean'
+          },
+          label: {
+            name: "ready to merge",
+          },
+          ...fixtureRepository(),
+        })
+      );
+
+      await appState.queue.onIdle();
+      expect(appState.proposedTrain).toEqual([123, 166]);
     });
   });
 

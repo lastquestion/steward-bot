@@ -174,22 +174,30 @@ export = (cacheState: CacheState, config: Config): { state: State; app: Applicat
     }
   };
 
-  const checkSinglePr = async (pull_number: number, context: Context) => {
-    const {
-      data: { number, labels, mergeable_state },
-    } = await context.github.pulls.get({
-      ...context.repo(),
-      pull_number,
-    });
+  const checkSinglePr = async (pull_number: number, context: Context): Promise<void> => {
+    try {
+      // Short circuit if the PR has already been added to the train by another action.
+      if (state.proposedTrain.includes(pull_number)) {
+        return;
+      }
 
-    const mergeLabel = labels.find((label) => label.name == "ready to merge");
+      const {
+        data: { number, labels, mergeable_state },
+      } = await context.github.pulls.get({
+        ...context.repo(),
+        pull_number,
+      });
 
-    // if it's labeled and we're sure it can be merged...
-    if (mergeLabel && mergeable_state == "clean") {
-      // Add it to the proposed list
-      state.proposedTrain.push(number);
+      const mergeLabel = labels.find((label) => label.name == "ready to merge");
 
-      log(context, `${number} added to the proposed train: clean and ready to merge`);
+      // if it's labeled and we're sure it can be merged...
+      if (mergeLabel && mergeable_state == "clean") {
+        // Add it to the proposed list
+        state.proposedTrain.push(number);
+        log(context, `${number} added to the proposed train: clean and ready to merge`);
+      }
+    } catch (e) {
+      context.log.error(e);
     }
   };
 
