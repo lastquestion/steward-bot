@@ -174,6 +174,33 @@ export = (cacheState: CacheState, config: Config): { state: State; app: Applicat
     }
   };
 
+  const checkSinglePr = async (pull_number: number, context: Context): Promise<void> => {
+    try {
+      // Short circuit if the PR has already been added to the train by another action.
+      if (state.proposedTrain.includes(pull_number)) {
+        return;
+      }
+
+      const {
+        data: { number, labels, mergeable_state },
+      } = await context.github.pulls.get({
+        ...context.repo(),
+        pull_number,
+      });
+
+      const mergeLabel = labels.find((label) => label.name == "ready to merge");
+
+      // if it's labeled and we're sure it can be merged...
+      if (mergeLabel && mergeable_state == "clean") {
+        // Add it to the proposed list
+        state.proposedTrain.push(number);
+        log(context, `${number} added to the proposed train: clean and ready to merge`);
+      }
+    } catch (e) {
+      context.log.error(e);
+    }
+  };
+
   const logAndEnqueue = (
     job: ((context: Context) => Promise<void>) | (() => Promise<void>),
     type: string,
@@ -222,6 +249,8 @@ export = (cacheState: CacheState, config: Config): { state: State; app: Applicat
             if (state.proposedTrain.length == 0) {
               log(context, `PR ${number} labeled; proposed trains empty, starting`);
               await checkMergeTrain(context);
+            } else {
+              await checkSinglePr(number, context);
             }
           },
           "labeled",
