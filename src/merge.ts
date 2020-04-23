@@ -1,39 +1,50 @@
-import { Application, Context } from "probot"; // eslint-disable-line no-unused-vars
+/* eslint-disable @typescript-eslint/camelcase */
+
+import { Application, Context, ApplicationFunction } from "probot"; // eslint-disable-line no-unused-vars
 import { routes } from "./routes";
 import { State } from "./state";
 import PQueue from "p-queue";
 import { CacheState } from "./cache";
 
-// so we can test changes without mutating things
-const MUTATE = !!process.env.MUTATE;
-const DEBUG = !!process.env.DEBUG;
-
 // because we expect that the number of requests we need to make is high,
 // use the old REST API because we can use ETags to avoid hitting our
 // rate limits
 
-export = (cacheState: CacheState, app: Application): void => {
-  let state: State = {
+type Config = {
+  mutate: boolean;
+  debug: boolean;
+  appName: string;
+  appRoute?: string;
+};
+
+function filterSuccess<T>(result: PromiseSettledResult<T>): result is PromiseFulfilledResult<T> {
+  return result.status == "fulfilled";
+}
+
+function filterReject<T>(result: PromiseSettledResult<T>): result is PromiseRejectedResult {
+  return result.status == "rejected";
+}
+
+export = (cacheState: CacheState, config: Config): { state: State; app: ApplicationFunction } => {
+  const state: State = {
     proposedTrain: [],
-    enabled: MUTATE,
+    enabled: config.mutate,
     decisionLog: [],
     queue: new PQueue({ concurrency: 1 }),
     cacheState,
   };
 
-  routes(state, "/merge", app.route("/merge"));
-
-  const log = (context: Context, str: string) => {
+  const log = (context: Context, str: string): void => {
     state.decisionLog.push(str);
     context.log(str);
   };
 
-  const merge = async (context: Context, mergeTrain: Array<number>) => {
+  const merge = async (context: Context, mergeTrain: Array<number>): Promise<void> => {
     if (mergeTrain.length == 0) return;
 
     log(context, `attempting to merge [${mergeTrain}]`);
 
-    if (!MUTATE) {
+    if (!config.mutate) {
       log(context, "ignoring merge; mutation off");
       return;
     }
@@ -50,9 +61,8 @@ export = (cacheState: CacheState, app: Application): void => {
           await context.github.issues.createComment({
             ...context.repo(),
             issue_number: pr,
-            body: `This PR was merged by ot-probot. Thanks for your contribution.`,
+            body: `This PR was merged by ${config.appName}. Thanks for your contribution.`,
           });
-
           return { pull_number: pr, mergeResult };
         } catch (err) {
           throw { pull_number: pr, err };
@@ -60,18 +70,14 @@ export = (cacheState: CacheState, app: Application): void => {
       })
     );
 
-    const successes = results
-      .filter((result) => result.status == "fulfilled")
-      .map((result: any) => result.value.pull_number);
-    const failures = results
-      .filter((result) => result.status == "rejected")
-      .map((result: any) => result.reason.pull_number);
+    const successes = results.filter(filterSuccess).map((result) => result.value.pull_number);
+    const failures = results.filter(filterReject).map((result) => result.reason.pull_number);
 
     log(context, `succeeded in merging [${successes}], failed to merge [${failures}]`);
     log(context, `failures reasons: ${JSON.stringify(failures)}`);
   };
 
-  const checkMergeTrain = async (context: Context) => {
+  const checkMergeTrain = async (context: Context): Promise<void> => {
     try {
       if (state.proposedTrain.length == 0) {
         // we have no proposals, find all
@@ -111,7 +117,7 @@ export = (cacheState: CacheState, app: Application): void => {
         })
       );
 
-      if (DEBUG) console.log(JSON.stringify(latestStatusAndPR, null, "  "));
+      if (config.debug) console.log(JSON.stringify(latestStatusAndPR, null, "  "));
 
       const newTrain = [] as Array<number>;
       const readyToMerge = [] as Array<number>;
@@ -119,7 +125,7 @@ export = (cacheState: CacheState, app: Application): void => {
       for (const elem of latestStatusAndPR) {
         const {
           combinedStatus: {
-            data: { state, statuses },
+            data: { statuses },
           },
           pr: {
             data: { number, labels, mergeable_state },
@@ -147,7 +153,7 @@ export = (cacheState: CacheState, app: Application): void => {
 
         log(
           context,
-          `${number} from the merge train: ${state} pending checks: ${anyPending ? "pending" : "none pending"} label: ${
+          `${number} from the merge train: pending checks: ${anyPending ? "pending" : "none pending"} label: ${
             mergeLabel ? "labeled" : "not labeled"
           } ${mergeable_state}`
         );
@@ -172,7 +178,7 @@ export = (cacheState: CacheState, app: Application): void => {
     job: ((context: Context) => Promise<void>) | (() => Promise<void>),
     type: string,
     context: Context
-  ) => {
+  ): void => {
     if (!state.enabled) {
       context.log("not enabled, bailing");
       return;
@@ -190,54 +196,68 @@ export = (cacheState: CacheState, app: Application): void => {
     });
   };
 
-  app.on("status", async (context: Context) => {
-    // it's tricky to figure out the branch from the sha.
-    // just find the mergeability of all prs in the train every time
-    // and rely on the fact that we cache the REST calls so it's not deathly
-    // inefficient.
-    logAndEnqueue(checkMergeTrain, "status", context);
-  });
+  const appRoute = config.appRoute || `/${config.appName}`;
 
-  app.on("pull_request.labeled", async (context: Context) => {
-    const {
-      label,
-      pull_request: { number },
-    } = context.payload;
+  const mergeApp = (app: Application): void => {
+    routes(state, appRoute, app.route(appRoute));
 
-    if (label.name == "ready to merge") {
-      context.log(`PR labeled for merge ${number}`);
-      logAndEnqueue(
-        async () => {
-          if (state.proposedTrain.length == 0) {
-            log(context, `PR ${number} labeled; proposed trains empty, starting`);
-            await checkMergeTrain(context);
-          }
-        },
-        "labeled",
-        context
-      );
-    }
-  });
+    app.on("status", async (context: Context) => {
+      // it's tricky to figure out the branch from the sha.
+      // just find the mergeability of all prs in the train every time
+      // and rely on the fact that we cache the REST calls so it's not deathly
+      // inefficient.
+      logAndEnqueue(checkMergeTrain, "status", context);
+    });
 
-  app.on("pull_request.unlabeled", async (context: Context) => {
-    const {
-      label,
-      pull_request: { number },
-    } = context.payload;
+    app.on("pull_request.labeled", async (context: Context) => {
+      const {
+        label,
+        pull_request: { number },
+      } = context.payload;
 
-    if (label.name == "ready to merge") {
-      logAndEnqueue(
-        async () => {
-          if (state.proposedTrain.indexOf(number) != -1) {
-            log(context, `PR ${number} was part of proposed train ${state.proposedTrain}, but was unlabeled. Removing`);
-            state.proposedTrain = state.proposedTrain.filter((id) => id != number);
+      if (label.name == "ready to merge") {
+        context.log(`PR labeled for merge ${number}`);
+        logAndEnqueue(
+          async () => {
+            if (state.proposedTrain.length == 0) {
+              log(context, `PR ${number} labeled; proposed trains empty, starting`);
+              await checkMergeTrain(context);
+            }
+          },
+          "labeled",
+          context
+        );
+      }
+    });
 
-            await checkMergeTrain(context);
-          }
-        },
-        "unlabeled",
-        context
-      );
-    }
-  });
+    app.on("pull_request.unlabeled", async (context: Context) => {
+      const {
+        label,
+        pull_request: { number },
+      } = context.payload;
+
+      if (label.name == "ready to merge") {
+        logAndEnqueue(
+          async () => {
+            if (state.proposedTrain.indexOf(number) != -1) {
+              log(
+                context,
+                `PR ${number} was part of proposed train ${state.proposedTrain}, but was unlabeled. Removing`
+              );
+              state.proposedTrain = state.proposedTrain.filter((id) => id != number);
+
+              await checkMergeTrain(context);
+            }
+          },
+          "unlabeled",
+          context
+        );
+      }
+    });
+  };
+
+  return {
+    app: mergeApp,
+    state,
+  };
 };

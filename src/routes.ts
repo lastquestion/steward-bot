@@ -2,6 +2,7 @@ import { Router } from "express";
 import { State } from "./state";
 
 declare global {
+  //eslint-disable-next-line @typescript-eslint/no-namespace
   namespace Express {
     interface Request {
       // added by probot

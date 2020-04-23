@@ -4,7 +4,7 @@ import QuickLRU from "quick-lru";
 
 interface CacheItem {
   etag: string;
-  response: any;
+  response: any; //eslint-disable-line @typescript-eslint/no-explicit-any
 }
 
 export type CacheState = {
@@ -13,10 +13,10 @@ export type CacheState = {
   remainingLimit: string;
 };
 
-function cache(state: CacheState, octokit: Octokit, _options: any) {
-  // we should actutally use octokit.log. It's a bug in probot.
+function cache(state: CacheState, octokit: Octokit): void {
+  // we should actually use octokit.log. It's a bug in probot.
   const logger = {
-    debug: (str: string) => console.log(str),
+    debug: (str: string): void => console.log(str),
   };
 
   octokit.hook.wrap("request", (request, options) => {
@@ -35,36 +35,44 @@ function cache(state: CacheState, octokit: Octokit, _options: any) {
       }
     }
 
-    return request(options)
-      .then((response: any) => {
-        const {
-          headers: { etag, "x-ratelimit-limit": rateLimit, "x-ratelimit-remaining": remainingLimit },
-        } = response;
+    return (
+      request(options)
+        //eslint-disable-next-line @typescript-eslint/no-explicit-any
+        .then((response: any) => {
+          const {
+            headers: { etag, "x-ratelimit-limit": rateLimit, "x-ratelimit-remaining": remainingLimit },
+          } = response;
 
-        state.rateLimit = rateLimit;
-        state.remainingLimit = remainingLimit;
+          state.rateLimit = rateLimit;
+          state.remainingLimit = remainingLimit;
 
-        if (etag) {
-          logger.debug(`cache: storing ${etag} for ${url}`);
-          state.lru.set(url, { etag, response });
-        }
-
-        return response;
-      })
-      .catch((error: any) => {
-        if (error.status === 304) {
-          if (cachedResponse) {
-            logger.debug(`cache: hit 304 for ${cachedResponse.etag} ${url}`);
-            return cachedResponse.response;
+          if (etag) {
+            logger.debug(`cache: storing ${etag} for ${url}`);
+            state.lru.set(url, { etag, response });
           }
-        }
 
-        throw error;
-      });
+          return response;
+        })
+        //eslint-disable-next-line @typescript-eslint/no-explicit-any
+        .catch((error: any) => {
+          if (error.status === 304) {
+            if (cachedResponse) {
+              logger.debug(`cache: hit 304 for ${cachedResponse.etag} ${url}`);
+              return cachedResponse.response;
+            }
+          }
+
+          throw error;
+        })
+    );
   });
 }
 
-export function CachePlugin({ maxSize }: { maxSize: number }) {
+export function CachePlugin({
+  maxSize,
+}: {
+  maxSize: number;
+}): { state: CacheState; plugin: (octokit: Octokit) => void } {
   const state = {
     lru: new QuickLRU<string, CacheItem>({ maxSize }),
     remainingLimit: "",
