@@ -475,12 +475,12 @@
     before-after-hook "^2.1.0"
     universal-user-agent "^5.0.0"
 
-"@octokit/endpoint@^6.0.0":
-  version "6.0.0"
-  resolved "http://artifactory.otenv.com:8081/artifactory/api/npm/npm-virtual/@octokit/endpoint/-/endpoint-6.0.0.tgz#4c7acd79ab72df78732a7d63b09be53ec5a2230b"
-  integrity sha1-THrNeaty33hzKn1jsJvlPsWiIws=
+"@octokit/endpoint@^6.0.0", "@octokit/endpoint@^6.0.1":
+  version "6.0.1"
+  resolved "http://artifactory.otenv.com:8081/artifactory/api/npm/npm-virtual/@octokit/endpoint/-/endpoint-6.0.1.tgz#16d5c0e7a83e3a644d1ddbe8cded6c3d038d31d7"
+  integrity sha1-FtXA56g+OmRNHdvoze1sPQONMdc=
   dependencies:
-    "@octokit/types" "^2.0.0"
+    "@octokit/types" "^2.11.1"
     is-plain-object "^3.0.0"
     universal-user-agent "^5.0.0"
 
@@ -556,13 +556,13 @@
     once "^1.4.0"
 
 "@octokit/request@^5.0.0", "@octokit/request@^5.1.0", "@octokit/request@^5.2.0", "@octokit/request@^5.3.0":
-  version "5.3.4"
-  resolved "http://artifactory.otenv.com:8081/artifactory/api/npm/npm-virtual/@octokit/request/-/request-5.3.4.tgz#fbc950bf785d59da3b0399fc6d042c8cf52e2905"
-  integrity sha1-+8lQv3hdWdo7A5n8bQQsjPUuKQU=
+  version "5.4.2"
+  resolved "http://artifactory.otenv.com:8081/artifactory/api/npm/npm-virtual/@octokit/request/-/request-5.4.2.tgz#74f8e5bbd39dc738a1b127629791f8ad1b3193ee"
+  integrity sha1-dPjlu9OdxzihsSdil5H4rRsxk+4=
   dependencies:
-    "@octokit/endpoint" "^6.0.0"
+    "@octokit/endpoint" "^6.0.1"
     "@octokit/request-error" "^2.0.0"
-    "@octokit/types" "^2.0.0"
+    "@octokit/types" "^2.11.1"
     deprecation "^2.0.0"
     is-plain-object "^3.0.0"
     node-fetch "^2.3.0"
@@ -605,10 +605,10 @@
     once "^1.4.0"
     universal-user-agent "^4.0.0"
 
-"@octokit/types@^2.0.0", "@octokit/types@^2.0.1":
-  version "2.5.1"
-  resolved "http://artifactory.otenv.com:8081/artifactory/api/npm/npm-virtual/@octokit/types/-/types-2.5.1.tgz#22563b3bb50034bea3176eac1860340c5e812e2a"
-  integrity sha1-IlY7O7UANL6jF26sGGA0DF6BLio=
+"@octokit/types@^2.0.0", "@octokit/types@^2.0.1", "@octokit/types@^2.11.1":
+  version "2.12.1"
+  resolved "http://artifactory.otenv.com:8081/artifactory/api/npm/npm-virtual/@octokit/types/-/types-2.12.1.tgz#4a26b4a85ec121043d3b0745b5798f9d8fd968ca"
+  integrity sha1-Sia0qF7BIQQ9OwdFtXmPnY/ZaMo=
   dependencies:
     "@types/node" ">= 8"
 
@@ -764,7 +764,12 @@
   resolved "http://artifactory.otenv.com:8081/artifactory/api/npm/npm-virtual/@types/node/-/node-13.11.1.tgz#49a2a83df9d26daacead30d0ccc8762b128d53c7"
   integrity sha1-SaKoPfnSbarOrTDQzMh2KxKNU8c=
 
-"@types/node@>= 8", "@types/node@^13.1.0":
+"@types/node@>= 8":
+  version "13.13.2"
+  resolved "http://artifactory.otenv.com:8081/artifactory/api/npm/npm-virtual/@types/node/-/node-13.13.2.tgz#160d82623610db590a64e8ca81784e11117e5a54"
+  integrity sha1-Fg2CYjYQ21kKZOjKgXhOERF+WlQ=
+
+"@types/node@^13.1.0":
   version "13.11.0"
   resolved "http://artifactory.otenv.com:8081/artifactory/api/npm/npm-virtual/@types/node/-/node-13.11.0.tgz#390ea202539c61c8fa6ba4428b57e05bc36dc47b"
   integrity sha1-OQ6iAlOcYcj6a6RCi1fgW8NtxHs=
@@ -2595,14 +2600,15 @@ growly@^1.3.0:
   resolved "http://artifactory.otenv.com:8081/artifactory/api/npm/npm-virtual/growly/-/growly-1.3.0.tgz#f10748cbe76af964b7c96c93c6bcc28af120c081"
   integrity sha1-8QdIy+dq+WS3yWyTxrzCivEgwIE=
 
-handlebars@4.5.3:
-  version "4.5.3"
-  resolved "http://artifactory.otenv.com:8081/artifactory/api/npm/npm-virtual/handlebars/-/handlebars-4.5.3.tgz#5cf75bd8714f7605713511a56be7c349becb0482"
-  integrity sha1-XPdb2HFPdgVxNRGla+fDSb7LBII=
+handlebars@4.7.6:
+  version "4.7.6"
+  resolved "http://artifactory.otenv.com:8081/artifactory/api/npm/npm-virtual/handlebars/-/handlebars-4.7.6.tgz#d4c05c1baf90e9945f77aa68a7a219aa4a7df74e"
+  integrity sha1-1MBcG6+Q6ZRfd6pop6IZqkp9904=
   dependencies:
+    minimist "^1.2.5"
     neo-async "^2.6.0"
-    optimist "^0.6.1"
     source-map "^0.6.1"
+    wordwrap "^1.0.0"
   optionalDependencies:
     uglify-js "^3.1.4"
 
@@ -2666,11 +2672,11 @@ has-yarn@^2.1.0:
   integrity sha1-E34RNUp7W/EapctknPDG8/8rLnc=
 
 hbs@^4.1.0:
-  version "4.1.0"
-  resolved "http://artifactory.otenv.com:8081/artifactory/api/npm/npm-virtual/hbs/-/hbs-4.1.0.tgz#ddcf3d574a6be5f7abfbd8a350a3db62ef66a13c"
-  integrity sha1-3c89V0pr5fer+9ijUKPbYu9moTw=
+  version "4.1.1"
+  resolved "http://artifactory.otenv.com:8081/artifactory/api/npm/npm-virtual/hbs/-/hbs-4.1.1.tgz#8aab17ca6ae70f9aaa225278bed7af31011254b7"
+  integrity sha1-iqsXymrnD5qqIlJ4vtevMQESVLc=
   dependencies:
-    handlebars "4.5.3"
+    handlebars "4.7.6"
     walk "2.3.14"
 
 hosted-git-info@^2.1.4:
@@ -2817,9 +2823,9 @@ inquirer@^7.0.0:
     through "^2.3.6"
 
 ioredis@^4.5.1:
-  version "4.16.1"
-  resolved "http://artifactory.otenv.com:8081/artifactory/api/npm/npm-virtual/ioredis/-/ioredis-4.16.1.tgz#377c21d2a4fa8cc31fe9028c666f8dd16a6255bf"
-  integrity sha1-N3wh0qT6jMMf6QKMZm+N0WpiVb8=
+  version "4.16.3"
+  resolved "http://artifactory.otenv.com:8081/artifactory/api/npm/npm-virtual/ioredis/-/ioredis-4.16.3.tgz#6a6b85830206fd98353b7ff8536521f17943be53"
+  integrity sha1-amuFgwIG/Zg1O3/4U2Uh8XlDvlM=
   dependencies:
     cluster-key-slot "^1.1.0"
     debug "^4.1.1"
@@ -2971,9 +2977,9 @@ is-installed-globally@^0.1.0:
     is-path-inside "^1.0.0"
 
 is-installed-globally@^0.3.1:
-  version "0.3.1"
-  resolved "http://artifactory.otenv.com:8081/artifactory/api/npm/npm-virtual/is-installed-globally/-/is-installed-globally-0.3.1.tgz#679afef819347a72584617fd19497f010b8ed35f"
-  integrity sha1-Z5r++Bk0enJYRhf9GUl/AQuO018=
+  version "0.3.2"
+  resolved "http://artifactory.otenv.com:8081/artifactory/api/npm/npm-virtual/is-installed-globally/-/is-installed-globally-0.3.2.tgz#fd3efa79ee670d1187233182d5b0a1dd00313141"
+  integrity sha1-/T76ee5nDRGHIzGC1bCh3QAxMUE=
   dependencies:
     global-dirs "^2.0.1"
     is-path-inside "^3.0.1"
@@ -4020,11 +4026,6 @@ minimist@^1.1.1, minimist@^1.2.0, minimist@^1.2.5:
   resolved "http://artifactory.otenv.com:8081/artifactory/api/npm/npm-virtual/minimist/-/minimist-1.2.5.tgz#67d66014b66a6a8aaa0c083c5fd58df4e4e97602"
   integrity sha1-Z9ZgFLZqaoqqDAg8X9WN9OTpdgI=
 
-minimist@~0.0.1:
-  version "0.0.10"
-  resolved "http://artifactory.otenv.com:8081/artifactory/api/npm/npm-virtual/minimist/-/minimist-0.0.10.tgz#de3f98543dbf96082be48ad1a0c7cda836301dcf"
-  integrity sha1-3j+YVD2/lggr5IrRoMfNqDYwHc8=
-
 mixin-deep@^1.2.0:
   version "1.3.2"
   resolved "http://artifactory.otenv.com:8081/artifactory/api/npm/npm-virtual/mixin-deep/-/mixin-deep-1.3.2.tgz#1120b43dc359a785dce65b55b82e257ccf479566"
@@ -4091,9 +4092,9 @@ mv@~2:
     rimraf "~2.4.0"
 
 nan@^2.14.0:
-  version "2.14.0"
-  resolved "http://artifactory.otenv.com:8081/artifactory/api/npm/npm-virtual/nan/-/nan-2.14.0.tgz#7818f722027b2459a86f0295d434d1fc2336c52c"
-  integrity sha1-eBj3IgJ7JFmobwKV1DTR/CM2xSw=
+  version "2.14.1"
+  resolved "http://artifactory.otenv.com:8081/artifactory/api/npm/npm-virtual/nan/-/nan-2.14.1.tgz#d7be34dfa3105b91494c3147089315eff8874b01"
+  integrity sha1-174036MQW5FJTDFHCJMV7/iHSwE=
 
 nanomatch@^1.2.9:
   version "1.2.13"
@@ -4306,14 +4307,6 @@ onetime@^5.1.0:
   dependencies:
     mimic-fn "^2.1.0"
 
-optimist@^0.6.1:
-  version "0.6.1"
-  resolved "http://artifactory.otenv.com:8081/artifactory/api/npm/npm-virtual/optimist/-/optimist-0.6.1.tgz#da3ea74686fa21a19a111c326e90eb15a0196686"
-  integrity sha1-2j6nRob6IaGaERwybpDrFaAZZoY=
-  dependencies:
-    minimist "~0.0.1"
-    wordwrap "~0.0.2"
-
 optionator@^0.8.1, optionator@^0.8.3:
   version "0.8.3"
   resolved "http://artifactory.otenv.com:8081/artifactory/api/npm/npm-virtual/optionator/-/optionator-0.8.3.tgz#84fa1d036fe9d3c7e21d99884b601167ec8fb495"
@@ -4366,14 +4359,7 @@ p-finally@^2.0.0:
   resolved "http://artifactory.otenv.com:8081/artifactory/api/npm/npm-virtual/p-finally/-/p-finally-2.0.1.tgz#bd6fcaa9c559a096b680806f4d657b3f0f240561"
   integrity sha1-vW/KqcVZoJa2gIBvTWV7Pw8kBWE=
 
-p-limit@^2.0.0:
-  version "2.2.2"
-  resolved "http://artifactory.otenv.com:8081/artifactory/api/npm/npm-virtual/p-limit/-/p-limit-2.2.2.tgz#61279b67721f5287aa1c13a9a7fbbc48c9291b1e"
-  integrity sha1-YSebZ3IfUoeqHBOpp/u8SMkpGx4=
-  dependencies:
-    p-try "^2.0.0"
-
-p-limit@^2.2.0:
+p-limit@^2.0.0, p-limit@^2.2.0:
   version "2.3.0"
   resolved "http://artifactory.otenv.com:8081/artifactory/api/npm/npm-virtual/p-limit/-/p-limit-2.3.0.tgz#3dd33c647a214fdfffd835933eb086da0dc21db1"
   integrity sha1-PdM8ZHohT9//2DWTPrCG2g3CHbE=
@@ -4617,9 +4603,9 @@ pretty-format@^25.4.0:
     react-is "^16.12.0"
 
 probot@^9.5.3:
-  version "9.11.2"
-  resolved "http://artifactory.otenv.com:8081/artifactory/api/npm/npm-virtual/probot/-/probot-9.11.2.tgz#db6642a76eedb799a4e9c4a4ee9f58a016ca7de6"
-  integrity sha1-22ZCp27tt5mk6cSk7p9YoBbKfeY=
+  version "9.11.3"
+  resolved "http://artifactory.otenv.com:8081/artifactory/api/npm/npm-virtual/probot/-/probot-9.11.3.tgz#ae3f3539ddd59675aaf4b795a516d0a6a49f9291"
+  integrity sha1-rj81Od3VlnWq9LeVpRbQpqSfkpE=
   dependencies:
     "@octokit/app" "^4.0.0"
     "@octokit/graphql" "^4.2.0"
@@ -5001,14 +4987,14 @@ resolve@1.1.7:
   resolved "http://artifactory.otenv.com:8081/artifactory/api/npm/npm-virtual/resolve/-/resolve-1.1.7.tgz#203114d82ad2c5ed9e8e0411b3932875e889e97b"
   integrity sha1-IDEU2CrSxe2ejgQRs5ModeiJ6Xs=
 
-resolve@1.x, resolve@^1.4.0:
+resolve@1.x:
   version "1.15.1"
   resolved "http://artifactory.otenv.com:8081/artifactory/api/npm/npm-virtual/resolve/-/resolve-1.15.1.tgz#27bdcdeffeaf2d6244b95bb0f9f4b4653451f3e8"
   integrity sha1-J73N7/6vLWJEuVuw+fS0ZTRR8+g=
   dependencies:
     path-parse "^1.0.6"
 
-resolve@^1.10.0, resolve@^1.15.1, resolve@^1.3.2:
+resolve@^1.10.0, resolve@^1.15.1, resolve@^1.3.2, resolve@^1.4.0:
   version "1.17.0"
   resolved "http://artifactory.otenv.com:8081/artifactory/api/npm/npm-virtual/resolve/-/resolve-1.17.0.tgz#b25941b54968231cc2d1bb76a79cb7f2c0bf8444"
   integrity sha1-sllBtUloIxzC0bt2p5y38sC/hEQ=
@@ -5149,9 +5135,9 @@ semver@6.x, semver@^6.0.0, semver@^6.1.2, semver@^6.2.0, semver@^6.3.0:
   integrity sha1-7gpkyK9ejO6mdoexM3YeG+y9HT0=
 
 semver@^7.0.0:
-  version "7.1.3"
-  resolved "http://artifactory.otenv.com:8081/artifactory/api/npm/npm-virtual/semver/-/semver-7.1.3.tgz#e4345ce73071c53f336445cfc19efb1c311df2a6"
-  integrity sha1-5DRc5zBxxT8zZEXPwZ77HDEd8qY=
+  version "7.3.2"
+  resolved "http://artifactory.otenv.com:8081/artifactory/api/npm/npm-virtual/semver/-/semver-7.3.2.tgz#604962b052b81ed0786aae84389ffba70ffd3938"
+  integrity sha1-YElisFK4HtB4aq6EOJ/7pw/9OTg=
 
 send@0.17.1:
   version "0.17.1"
@@ -5799,12 +5785,11 @@ typescript@^3.6.4:
   integrity sha1-QJ64VE6gM1cRIFhp7EWKsQnuEGE=
 
 uglify-js@^3.1.4:
-  version "3.8.1"
-  resolved "http://artifactory.otenv.com:8081/artifactory/api/npm/npm-virtual/uglify-js/-/uglify-js-3.8.1.tgz#43bb15ce6f545eaa0a64c49fd29375ea09fa0f93"
-  integrity sha1-Q7sVzm9UXqoKZMSf0pN16gn6D5M=
+  version "3.9.1"
+  resolved "http://artifactory.otenv.com:8081/artifactory/api/npm/npm-virtual/uglify-js/-/uglify-js-3.9.1.tgz#a56a71c8caa2d36b5556cc1fd57df01ae3491539"
+  integrity sha1-pWpxyMqi02tVVswf1X3wGuNJFTk=
   dependencies:
     commander "~2.20.3"
-    source-map "~0.6.1"
 
 undefsafe@^2.0.2:
   version "2.0.3"
@@ -6104,9 +6089,9 @@ widest-line@^3.1.0:
     string-width "^4.0.0"
 
 windows-release@^3.1.0:
-  version "3.2.0"
-  resolved "http://artifactory.otenv.com:8081/artifactory/api/npm/npm-virtual/windows-release/-/windows-release-3.2.0.tgz#8122dad5afc303d833422380680a79cdfa91785f"
-  integrity sha1-gSLa1a/DA9gzQiOAaAp5zfqReF8=
+  version "3.3.0"
+  resolved "http://artifactory.otenv.com:8081/artifactory/api/npm/npm-virtual/windows-release/-/windows-release-3.3.0.tgz#dce167e9f8be733f21c849ebd4d03fe66b29b9f0"
+  integrity sha1-3OFn6fi+cz8hyEnr1NA/5mspufA=
   dependencies:
     execa "^1.0.0"
 
@@ -6115,10 +6100,10 @@ word-wrap@~1.2.3:
   resolved "http://artifactory.otenv.com:8081/artifactory/api/npm/npm-virtual/word-wrap/-/word-wrap-1.2.3.tgz#610636f6b1f703891bd34771ccb17fb93b47079c"
   integrity sha1-YQY29rH3A4kb00dxzLF/uTtHB5w=
 
-wordwrap@~0.0.2:
-  version "0.0.3"
-  resolved "http://artifactory.otenv.com:8081/artifactory/api/npm/npm-virtual/wordwrap/-/wordwrap-0.0.3.tgz#a3d5da6cd5c0bc0008d37234bbaf1bed63059107"
-  integrity sha1-o9XabNXAvAAI03I0u68b7WMFkQc=
+wordwrap@^1.0.0:
+  version "1.0.0"
+  resolved "http://artifactory.otenv.com:8081/artifactory/api/npm/npm-virtual/wordwrap/-/wordwrap-1.0.0.tgz#27584810891456a4171c8d0226441ade90cbcaeb"
+  integrity sha1-J1hIEIkUVqQXHI0CJkQa3pDLyus=
 
 wrap-ansi@^6.2.0:
   version "6.2.0"
