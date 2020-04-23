@@ -8,7 +8,7 @@ If you have a fairly long build + CI process that runs on every PR, and you reru
 the latest master (e.g. you re-merge PRs onto the latest head), this bot is for you.
 
 In these cases, every merge to master causes all PRs to rebuild, which means if you strictly merge
-only PRs that are green and up to date against master, you must wait __build time__ between each
+only PRs that are green and up to date against master, you must wait **build time** between each
 merge. In a repo with high activity and large PR rate, such as a monorepo or monolithic, this
 quickly becomes extremely limiting and also a terrible developer experience.
 
@@ -22,26 +22,29 @@ In some sense, this is more complicated then a simple merge bot that merges when
 a per PR basis, but less intelligent then a `bors` style bisecting merge-manager, or GitLab's
 merge trains (which build the combined diff set).
 
-
 ## Features
 
-* A UI on `/merge` which enables and disables merging, e.g. in cases like production hotfixes or
-master breaking, so that the bot stops merging PRs.
+- A UI on `/merge` which enables and disables merging, e.g. in cases like production hotfixes or
+  master breaking, so that the bot stops merging PRs.
 
-* Cached github responses: fast and never hits the rate limit
+- Cached github responses: fast and never hits the rate limit
 
 ## Development
+
 ### Dev notes
 
 Node 12, yarn, prettier.
 
+### Testing
+
+Add tests. There is a variety of fixtures to nock and fire the events.
+
 ### Next++
 
-* Read from a `.github/config` instead of hard coded labels
-* Better `/merge` UI
-* Allow custom predictors to better choose PRs in a train, e.g. by checking CI predicted build time
+- Read from a `.github/config` instead of hard coded labels
+- Better `/merge` UI
+- Allow custom predictors to better choose PRs in a train, e.g. by checking CI predicted build time
   left, for example.
-* Tests
 
 ### License
 
