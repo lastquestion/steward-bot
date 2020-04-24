@@ -29,6 +29,7 @@ export = (cacheState: CacheState, config: Config): { state: State; app: Applicat
   const state: State = {
     proposedTrain: [],
     enabled: config.mutate,
+    mergingEnabled: config.mutate,
     decisionLog: [],
     queue: new PQueue({ concurrency: 1 }),
     cacheState,
@@ -44,7 +45,7 @@ export = (cacheState: CacheState, config: Config): { state: State; app: Applicat
 
     log(context, `attempting to merge [${mergeTrain}]`);
 
-    if (!config.mutate) {
+    if (!state.mergingEnabled) {
       log(context, "ignoring merge; mutation off");
       return;
     }

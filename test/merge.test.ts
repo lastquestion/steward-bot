@@ -297,7 +297,7 @@ describe("steward-bot: merge", () => {
         wrapIntoRequest("pull_request.labeled", {
           pull_request: {
             number: 166,
-            mergeable_state: 'clean'
+            mergeable_state: "clean",
           },
           label: {
             name: "ready to merge",
@@ -329,7 +329,7 @@ describe("steward-bot: merge", () => {
         wrapIntoRequest("pull_request.labeled", {
           pull_request: {
             number: 166,
-            mergeable_state: 'clean'
+            mergeable_state: "clean",
           },
           label: {
             name: "ready to merge",
