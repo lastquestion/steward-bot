@@ -7,5 +7,4 @@ export interface State {
   decisionLog: Array<string>;
   queue: PQueue;
   cacheState: CacheState;
-  [key: string]: boolean | CacheState | PQueue | Array<string> | Array<number>;
 }
