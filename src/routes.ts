@@ -1,5 +1,7 @@
 import { Router } from "express";
-import { State } from "./state";
+import { Repos } from "./repo";
+import { CacheState } from "./cache";
+
 import bodyParser from "body-parser";
 
 declare global {
@@ -12,41 +14,53 @@ declare global {
   }
 }
 
-export function routes(state: State, root: string, router: Router): void {
+export function routes(cacheState: CacheState, repos: Repos, root: string, router: Router): void {
   router.use(bodyParser.urlencoded());
 
   router.get("/", (_req, res) => {
-    const { enabled, mergingEnabled, proposedTrain, decisionLog } = state;
-    res.send(`
+    let page = `
 <html>
 <body>
 <pre>
+`;
+    for (const repo of Object.keys(repos)) {
+      const { enabled, mergingEnabled, proposedTrain, decisionLog, queue } = repos[repo];
+      page += `
+repo ${repo}
 proposed PRs: ${JSON.stringify(proposedTrain)}
 enabled: ${enabled ? "yes" : "no"}
 merging: ${mergingEnabled ? "enabled" : "disabled"}
-queue length: ${state.queue.size}
-lru cache size: ${state.cacheState.lru.size}
-rate limit remaining: ${state.cacheState.remainingLimit} out of ${state.cacheState.rateLimit}
+queue length: ${queue.size}
 </pre>
 <form method="post" action="${root}">
+<input type="hidden" value="${repo}" name="repo">
 <button name="enabled" value="enabled">Turn ${!enabled ? "on" : "off"}</button>
 <button name="mergingEnabled" value="mergingEnabled">${!mergingEnabled ? "Unpause Merging" : "Pause Merging"}</button>
 </form>
 <pre>Log:
 ${decisionLog.join("\n")}
 </pre>
+`;
+    }
+    page += `
+<pre>
+lru cache size: ${cacheState.lru.size}
+rate limit remaining: ${cacheState.remainingLimit} out of ${cacheState.rateLimit}
+</pre>
 </body>
 </html>
-`);
+`;
+    res.send(page);
   });
   router.post("/", (req, res) => {
-    const { enabled, mergingEnabled } = req.body;
+    const { enabled, mergingEnabled, repo: repoName } = req.body;
+    const repo = repos[repoName];
     if (enabled) {
-      state.enabled = !state.enabled;
-      req.log(`changing enabled state to ${state.enabled}`);
+      repo.enabled = !repo.enabled;
+      req.log(`changing enabled repo to ${repo.enabled} for ${repoName}`);
     } else if (mergingEnabled) {
-      state.mergingEnabled = !state.mergingEnabled;
-      req.log(`changing mergingEnabled state to ${state.mergingEnabled}`);
+      repo.mergingEnabled = !repo.mergingEnabled;
+      req.log(`changing mergingEnabled repo to ${repo.mergingEnabled} for ${repoName}`);
     }
     res.redirect(root);
   });

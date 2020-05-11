@@ -7,7 +7,7 @@ import { promisify } from "util";
 import { Probot } from "probot";
 import Merge from "../src/merge";
 import { CacheState } from "../src/cache";
-import { State } from "../src/state";
+import { Repos } from "../src/repo";
 
 const readFile = promisify(fs.readFile);
 
@@ -102,7 +102,7 @@ describe("steward-bot: merge", () => {
   let probot: Probot;
   let mockCert: string;
   let cacheState: CacheState;
-  let appState: State;
+  let appRepos: Repos;
 
   beforeAll(async () => {
     mockCert = await readFile(path.join(__dirname, "fixtures/mock-cert.pem"), "utf8");
@@ -120,34 +120,60 @@ describe("steward-bot: merge", () => {
     console.log("ignore the following deprecation about auth, see https://github.com/probot/probot/issues/1139");
   });
 
-  beforeEach(() => {
+  beforeEach(async () => {
     probot = new Probot({ id: 1, cert: mockCert });
 
     const app = Merge(cacheState, { mutate: true, debug: false, appName: "steward-bot" });
-    appState = app.state;
+    appRepos = app.repos;
 
     probot.load(app.app);
 
     nock("https://api.github.com")
       .post(`/app/installations/${INSTALLATION_ID}/access_tokens`)
       .reply(200, { token: "atoken" });
+
+    await probot.receive(wrapIntoRequest("ping", fixtureRepository()));
+  });
+
+  describe("queuing", () => {
+    test("enqueues multiple requests", async () => {
+      appRepos["repo-name"].queue.pause();
+      await probot.receive(fixtureRequestStatus());
+      await probot.receive(fixtureRequestStatus());
+
+      expect(appRepos["repo-name"].queue.size).toBe(2);
+    });
+
+    test("enqueues multiple requests for different repos", async () => {
+      const repo2 = fixtureRepository("3456", "repo-name-2");
+      await probot.receive(wrapIntoRequest("ping", repo2));
+
+      appRepos["repo-name"].queue.pause();
+      appRepos["repo-name-2"].queue.pause();
+
+      await probot.receive(fixtureRequestStatus());
+      await probot.receive(fixtureRequestStatus());
+      await probot.receive(
+        wrapIntoRequest("status", {
+          state: "success",
+          commit: {},
+          ...repo2,
+        })
+      );
+
+      expect(appRepos["repo-name"].queue.size).toBe(2);
+      expect(appRepos["repo-name-2"].queue.size).toBe(1);
+    });
   });
 
   describe("status change", () => {
-    test("enqueues multiple requests", async () => {
-      appState.queue.pause();
-      await probot.receive(fixtureRequestStatus());
-      await probot.receive(fixtureRequestStatus());
-      expect(appState.queue.size).toBe(2);
-    });
-
     test("it asks for pull requests, and does nothing if empty", async () => {
       nock("https://api.github.com")
         .get("/repos/repo-owner/repo-name/issues?state=open&labels=ready%20to%20merge&sort=created&direction=asc")
         .reply(200, []);
 
       await probot.receive(fixtureRequestStatus());
-      await appState.queue.onIdle();
+      await appRepos["repo-name"].queue.onIdle();
     });
 
     test("it asks for pull requests, and checks to see if any are ready", async () => {
@@ -164,9 +190,9 @@ describe("steward-bot: merge", () => {
         .reply(200, { statuses: [] });
 
       await probot.receive(fixtureRequestStatus());
-      await appState.queue.onIdle();
+      await appRepos["repo-name"].queue.onIdle();
 
-      expect(appState.proposedTrain).toEqual([]);
+      expect(appRepos["repo-name"].proposedTrain).toEqual([]);
     });
 
     test("it asks for pull requests, and waits if status is pending", async () => {
@@ -183,9 +209,9 @@ describe("steward-bot: merge", () => {
         .reply(200, fixtureCombinedStatus("pending"));
 
       await probot.receive(fixtureRequestStatus());
-      await appState.queue.onIdle();
+      await appRepos["repo-name"].queue.onIdle();
 
-      expect(appState.proposedTrain).toEqual([1347]);
+      expect(appRepos["repo-name"].proposedTrain).toEqual([1347]);
     });
 
     test("it attempts to merge if the PR is mergeable and clean", async () => {
@@ -212,8 +238,8 @@ describe("steward-bot: merge", () => {
       });
 
       await probot.receive(fixtureRequestStatus());
-      await appState.queue.onIdle();
-      expect(appState.proposedTrain).toEqual([]);
+      await appRepos["repo-name"].queue.onIdle();
+      expect(appRepos["repo-name"].proposedTrain).toEqual([]);
     });
   });
 
@@ -243,12 +269,12 @@ describe("steward-bot: merge", () => {
         })
       );
 
-      await appState.queue.onIdle();
-      expect(appState.proposedTrain).toEqual([166]);
+      await appRepos["repo-name"].queue.onIdle();
+      expect(appRepos["repo-name"].proposedTrain).toEqual([166]);
     });
 
     test("does nothing if the train is already running and the PR is still building", async () => {
-      appState.proposedTrain = [123];
+      appRepos["repo-name"].proposedTrain = [123];
 
       nock("https://api.github.com")
         .get("/repos/repo-owner/repo-name/issues?state=open&labels=ready%20to%20merge&sort=created&direction=asc")
@@ -274,12 +300,12 @@ describe("steward-bot: merge", () => {
         })
       );
 
-      await appState.queue.onIdle();
-      expect(appState.proposedTrain).toEqual([123]);
+      await appRepos["repo-name"].queue.onIdle();
+      expect(appRepos["repo-name"].proposedTrain).toEqual([123]);
     });
 
     test("adds to the train if build is green", async () => {
-      appState.proposedTrain = [123];
+      appRepos["repo-name"].proposedTrain.push(123);
 
       nock("https://api.github.com")
         .get("/repos/repo-owner/repo-name/issues?state=open&labels=ready%20to%20merge&sort=created&direction=asc")
@@ -306,12 +332,12 @@ describe("steward-bot: merge", () => {
         })
       );
 
-      await appState.queue.onIdle();
-      expect(appState.proposedTrain).toEqual([123, 166]);
+      await appRepos["repo-name"].queue.onIdle();
+      expect(appRepos["repo-name"].proposedTrain).toEqual([123, 166]);
     });
 
     test("if the pr is already on the train, do nothing", async () => {
-      appState.proposedTrain = [123, 166];
+      appRepos["repo-name"].proposedTrain.push(123, 166);
 
       nock("https://api.github.com")
         .get("/repos/repo-owner/repo-name/issues?state=open&labels=ready%20to%20merge&sort=created&direction=asc")
@@ -338,8 +364,8 @@ describe("steward-bot: merge", () => {
         })
       );
 
-      await appState.queue.onIdle();
-      expect(appState.proposedTrain).toEqual([123, 166]);
+      await appRepos["repo-name"].queue.onIdle();
+      expect(appRepos["repo-name"].proposedTrain).toEqual([123, 166]);
     });
   });
 
