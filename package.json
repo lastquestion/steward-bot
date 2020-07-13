@@ -4,19 +4,21 @@
   "description": "Steward: help manage your PR flow",
   "author": "Lin Xu <lin@lastquestion.org>",
   "license": "MIT",
-  "repository": "https://github.com/lstquestion/steward-bot.git",
-  "homepage": "https://github.com/lstquestion/steward-bot",
-  "bugs": "https://github.com/lstquestion/steward-bot/issues",
+  "repository": "https://github.com/lastquestion/steward-bot.git",
+  "homepage": "https://github.com/lastquestion/steward-bot",
+  "bugs": "https://github.com/lastquestion/steward-bot/issues",
   "keywords": [
     "probot",
     "github",
     "probot-app"
   ],
   "main": "./lib/index.js",
+  "types": "./lib/index.d.ts",
   "scripts": {
     "build": "tsc",
     "build:watch": "tsc && (tsc -w --preserveWatchOutput & nodemon)",
     "dev": "npm run build:watch",
+    "prepare": "tsc",
     "start": "node ./lib/server.js",
     "lint": "prettier --write .",
     "test": "jest && eslint --ext .js,.ts . && prettier --check .",
@@ -61,5 +63,8 @@
     "extends": [
       "plugin:@typescript-eslint/recommended"
     ]
+  },
+  "publishConfig": {
+    "registry": "https://registry.npmjs.org"
   }
 }

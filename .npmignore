@@ -1,0 +1,9 @@
+.env
+.eslintignore
+.gitignore
+jest.config.js
+nodemon.json
+test/*
+tsconfig.json
+yarn.lock
+.DS_Store
