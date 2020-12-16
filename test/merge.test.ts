@@ -126,7 +126,7 @@ describe("steward-bot: merge", () => {
   beforeEach(async () => {
     probot = new Probot({ id: 1, cert: mockCert });
 
-    const app = Merge(cacheState, { mutate: true, debug: false, appName: "steward-bot" });
+    const app = Merge(cacheState, { mutate: true, debug: false, appName: "steward-bot", enforceCodeFreeze: false });
     appRepos = app.repos;
 
     probot.load(app.app);
