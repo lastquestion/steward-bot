@@ -43,15 +43,18 @@ function fixturePR({
   number,
   mergeable_state,
   labelled,
+  branchLabel = "master",
 }: {
   number: number;
   mergeable_state: string;
   labelled: boolean;
+  branchLabel?: string;
 }): any {
   const pr = {
     number,
     head: {
       sha: `pr-${number}-sha-head`,
+      label: `github:${branchLabel}`,
     },
     labels: [
       {
@@ -366,6 +369,144 @@ describe("steward-bot: merge", () => {
 
       await appRepos["repo-name"].queue.onIdle();
       expect(appRepos["repo-name"].proposedTrain).toEqual([123, 166]);
+    });
+
+    test("should add branch to train to anything if enforceCodeFreeze is on and codeFreezeBranchName is unset ", async () => {
+      probot = new Probot({ id: 1, cert: mockCert });
+
+      const app = Merge(cacheState, { mutate: true, debug: false, appName: "steward-bot", enforceCodeFreeze: true });
+      appRepos = app.repos;
+
+      probot.load(app.app);
+
+      nock("https://api.github.com")
+        .post(`/app/installations/${INSTALLATION_ID}/access_tokens`)
+        .reply(200, { token: "atoken" });
+
+      await probot.receive(wrapIntoRequest("ping", fixtureRepository()));
+
+      nock("https://api.github.com")
+        .get("/repos/repo-owner/repo-name/issues?state=open&labels=ready%20to%20merge&sort=created&direction=asc")
+        .reply(200, fixtureIssueList(166));
+
+      nock("https://api.github.com")
+        .get("/repos/repo-owner/repo-name/pulls/166")
+        .reply(200, fixturePR({ number: 166, mergeable_state: "unknown", labelled: true }));
+
+      nock("https://api.github.com")
+        .get("/repos/repo-owner/repo-name/commits/pr-166-sha-head/status")
+        .reply(200, fixtureCombinedStatus("pending"));
+
+      await probot.receive(
+        wrapIntoRequest("pull_request.labeled", {
+          pull_request: {
+            number: 166,
+          },
+          label: {
+            name: "ready to merge",
+          },
+          ...fixtureRepository(),
+        })
+      );
+
+      await appRepos["repo-name"].queue.onIdle();
+      expect(appRepos["repo-name"].proposedTrain).toEqual([166]);
+    });
+
+    test("should not add branch to train if branch merges to master and enforceCodeFreeze is on and codeFreezeBranchName is set to something that isn't master", async () => {
+      probot = new Probot({ id: 1, cert: mockCert });
+
+      const app = Merge(cacheState, {
+        mutate: true,
+        debug: false,
+        appName: "steward-bot",
+        enforceCodeFreeze: true,
+        codeFreezeBranchName: "test-freeze",
+      });
+      appRepos = app.repos;
+
+      probot.load(app.app);
+
+      nock("https://api.github.com")
+        .post(`/app/installations/${INSTALLATION_ID}/access_tokens`)
+        .reply(200, { token: "atoken" });
+
+      await probot.receive(wrapIntoRequest("ping", fixtureRepository()));
+
+      nock("https://api.github.com")
+        .get("/repos/repo-owner/repo-name/issues?state=open&labels=ready%20to%20merge&sort=created&direction=asc")
+        .reply(200, fixtureIssueList(166));
+
+      nock("https://api.github.com")
+        .get("/repos/repo-owner/repo-name/pulls/166")
+        .reply(200, fixturePR({ number: 166, mergeable_state: "unknown", labelled: true }));
+
+      nock("https://api.github.com")
+        .get("/repos/repo-owner/repo-name/commits/pr-166-sha-head/status")
+        .reply(200, fixtureCombinedStatus("pending"));
+
+      await probot.receive(
+        wrapIntoRequest("pull_request.labeled", {
+          pull_request: {
+            number: 166,
+          },
+          label: {
+            name: "ready to merge",
+          },
+          ...fixtureRepository(),
+        })
+      );
+
+      await appRepos["repo-name"].queue.onIdle();
+      expect(appRepos["repo-name"].proposedTrain).toEqual([]);
+    });
+
+    test('should add branch to train if branch merges to "test-freeze" and enforceCodeFreeze is on and codeFreezeBranchName is set to "test-freeze"', async () => {
+      probot = new Probot({ id: 1, cert: mockCert });
+
+      const app = Merge(cacheState, {
+        mutate: true,
+        debug: false,
+        appName: "steward-bot",
+        enforceCodeFreeze: true,
+        codeFreezeBranchName: "test-freeze",
+      });
+      appRepos = app.repos;
+
+      probot.load(app.app);
+
+      nock("https://api.github.com")
+        .post(`/app/installations/${INSTALLATION_ID}/access_tokens`)
+        .reply(200, { token: "atoken" });
+
+      await probot.receive(wrapIntoRequest("ping", fixtureRepository()));
+
+      nock("https://api.github.com")
+        .get("/repos/repo-owner/repo-name/issues?state=open&labels=ready%20to%20merge&sort=created&direction=asc")
+        .reply(200, fixtureIssueList(166));
+
+      nock("https://api.github.com")
+        .get("/repos/repo-owner/repo-name/pulls/166")
+        .reply(200, fixturePR({ number: 166, mergeable_state: "unknown", labelled: true, branchLabel: "test-freeze" }));
+
+      nock("https://api.github.com")
+        .get("/repos/repo-owner/repo-name/commits/pr-166-sha-head/status")
+        .reply(200, fixtureCombinedStatus("pending"));
+
+      await probot.receive(
+        wrapIntoRequest("pull_request.labeled", {
+          pull_request: {
+            number: 166,
+          },
+          label: {
+            name: "ready to merge",
+          },
+          ...fixtureRepository(),
+        })
+      );
+
+      await appRepos["repo-name"].queue.onIdle();
+      expect(appRepos["repo-name"].proposedTrain).toEqual([166]);
     });
   });
 

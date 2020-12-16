@@ -10,6 +10,8 @@ import { CacheState } from "./cache";
 type Config = {
   mutate: boolean;
   debug: boolean;
+  enforceCodeFreeze?: boolean;
+  codeFreezeBranchName?: string;
   appName: string;
   appRoute?: string;
 };
@@ -26,6 +28,8 @@ function repo(config: Config): Repo {
   // because we expect that the number of requests we need to make is high,
   // use the old REST API because we can use ETags to avoid hitting our
   // rate limits
+
+  const { enforceCodeFreeze = false, codeFreezeBranchName = "" } = config;
 
   const proposedTrain = [] as Array<number>;
   const decisionLog = [] as Array<string>;
@@ -131,35 +135,44 @@ function repo(config: Config): Repo {
             data: { statuses },
           },
           pr: {
-            data: { number, labels, mergeable_state },
+            data: {
+              number,
+              labels,
+              mergeable_state,
+              head: { label },
+            },
           },
         } = elem;
 
         const mergeLabel = labels.find((label) => label.name == "ready to merge");
         const anyPending = statuses.some((status) => status.state == "pending");
 
-        // if it's labeled,
-        if (mergeLabel) {
-          // and we're sure it can be merged...
-          if (mergeable_state == "clean") {
-            // prepare to merge it
-            readyToMerge.push(number);
-            newTrain.push(number);
-          } else {
-            // or, if we can't merge, but some tests are pending,
-            // maybe it could be mergeable later?
-            if (anyPending) {
+        if (enforceCodeFreeze && !label.includes(codeFreezeBranchName)) {
+          log(context, `${number} is not pointing towards the code freeze branch. It will not be merged`);
+        } else {
+          // if it's labeled,
+          if (mergeLabel) {
+            // and we're sure it can be merged...
+            if (mergeable_state == "clean") {
+              // prepare to merge it
+              readyToMerge.push(number);
               newTrain.push(number);
+            } else {
+              // or, if we can't merge, but some tests are pending,
+              // maybe it could be mergeable later?
+              if (anyPending) {
+                newTrain.push(number);
+              }
             }
           }
-        }
 
-        log(
-          context,
-          `${number} from the merge train: pending checks: ${anyPending ? "pending" : "none pending"} label: ${
-            mergeLabel ? "labeled" : "not labeled"
-          } ${mergeable_state}`
-        );
+          log(
+            context,
+            `${number} from the merge train: pending checks: ${anyPending ? "pending" : "none pending"} label: ${
+              mergeLabel ? "labeled" : "not labeled"
+            } ${mergeable_state}`
+          );
+        }
       }
 
       log(context, `after recalculating, train: [${updatedTrain}] becomes new train [${newTrain}]`);
@@ -185,11 +198,20 @@ function repo(config: Config): Repo {
       }
 
       const {
-        data: { number, labels, mergeable_state },
+        data: {
+          number,
+          labels,
+          mergeable_state,
+          head: { label },
+        },
       } = await context.github.pulls.get({
         ...context.repo(),
         pull_number,
       });
+
+      if (enforceCodeFreeze && !label.includes(codeFreezeBranchName)) {
+        return log(context, `${number} is not pointing towards the code freeze branch. It will not be merged`);
+      }
 
       const mergeLabel = labels.find((label) => label.name == "ready to merge");
 
