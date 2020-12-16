@@ -10,7 +10,7 @@ import { CacheState } from "./cache";
 type Config = {
   mutate: boolean;
   debug: boolean;
-  enforceCodeFreeze?: boolean;
+  enforceCodeFreeze: boolean;
   codeFreezeBranchName?: string;
   appName: string;
   appRoute?: string;
@@ -147,7 +147,10 @@ function repo(config: Config): Repo {
         const mergeLabel = labels.find((label) => label.name == "ready to merge");
         const anyPending = statuses.some((status) => status.state == "pending");
 
-        if (enforceCodeFreeze && !targetBranch.includes(codeFreezeBranchName)) {
+        // Branch names are in the format 'mergeLocation:branchName'
+        const matchesCodeFreezeBranch = targetBranch.split(":")[1] === codeFreezeBranchName;
+
+        if (enforceCodeFreeze && !matchesCodeFreezeBranch) {
           log(context, `${number} is not pointing towards the code freeze branch. It will not be merged`);
         } else {
           // if it's labeled,
@@ -209,7 +212,8 @@ function repo(config: Config): Repo {
         pull_number,
       });
 
-      if (enforceCodeFreeze && !targetBranch.includes(codeFreezeBranchName)) {
+      const matchesCodeFreezeBranch = targetBranch.split(":")[1] === codeFreezeBranchName;
+      if (enforceCodeFreeze && matchesCodeFreezeBranch) {
         return log(context, `${number} is not pointing towards the code freeze branch. It will not be merged`);
       }
 
