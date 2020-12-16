@@ -18,15 +18,31 @@ export function routes(cacheState: CacheState, repos: Repos, root: string, route
   router.use(bodyParser.urlencoded());
 
   router.get("/", (_req, res) => {
+    // NOTE: assumes all repos are in sync for code freeze status. This is set up to ONLY allow changing all repos at once.
+    const firstRepo = repos[Object.keys(repos)[0]];
     let page = `
 <html>
 <body>
+<h1>Merge Bot Settings</h1>
+<strong>Code freeze status: ${firstRepo ? firstRepo.enforceCodeFreeze : "unknown"}</strong>
+<br/>
+<span style="color:red;font-weight:bold;">Warning: This affects ALL repositories using the PR Bot. Notify all repository owners before you enforce code freeze</span>
+<form method="post" action="${root}/codeFreeze">
+<button name="enforceCodeFreeze">${
+      firstRepo && firstRepo.enforceCodeFreeze ? "Disable code freeze enforcement" : "Enforce code freeze"
+    }</button>
+<input name="codeFreezeBranchName">
+<br/>
+current enforced branch: ${firstRepo ? firstRepo.codeFreezeBranchName : ""}
+</form>
+<br/>
 <pre>
 `;
+
     for (const repo of Object.keys(repos)) {
       const { enabled, mergingEnabled, proposedTrain, decisionLog, queue } = repos[repo];
       page += `
-repo ${repo}
+<strong> repo ${repo} </strong>
 proposed PRs: ${JSON.stringify(proposedTrain)}
 enabled: ${enabled ? "yes" : "no"}
 merging: ${mergingEnabled ? "enabled" : "disabled"}
@@ -62,6 +78,17 @@ rate limit remaining: ${cacheState.remainingLimit} out of ${cacheState.rateLimit
       repo.mergingEnabled = !repo.mergingEnabled;
       req.log(`changing mergingEnabled repo to ${repo.mergingEnabled} for ${repoName}`);
     }
+    res.redirect(root);
+  });
+  router.post("/codeFreeze", (req, res) => {
+    const { codeFreezeBranchName } = req.body;
+
+    Object.keys(repos).forEach((repoName) => {
+      repos[repoName].enforceCodeFreeze = !repos[repoName].enforceCodeFreeze;
+      if (codeFreezeBranchName)
+        repos[repoName].codeFreezeBranchName = repos[repoName].codeFreezeBranchName = codeFreezeBranchName;
+    });
+
     res.redirect(root);
   });
 }
