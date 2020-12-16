@@ -139,7 +139,7 @@ function repo(config: Config): Repo {
               number,
               labels,
               mergeable_state,
-              head: { label },
+              head: { label: targetBranch },
             },
           },
         } = elem;
@@ -147,7 +147,7 @@ function repo(config: Config): Repo {
         const mergeLabel = labels.find((label) => label.name == "ready to merge");
         const anyPending = statuses.some((status) => status.state == "pending");
 
-        if (enforceCodeFreeze && !label.includes(codeFreezeBranchName)) {
+        if (enforceCodeFreeze && !targetBranch.includes(codeFreezeBranchName)) {
           log(context, `${number} is not pointing towards the code freeze branch. It will not be merged`);
         } else {
           // if it's labeled,
@@ -202,14 +202,14 @@ function repo(config: Config): Repo {
           number,
           labels,
           mergeable_state,
-          head: { label },
+          head: { label: targetBranch },
         },
       } = await context.github.pulls.get({
         ...context.repo(),
         pull_number,
       });
 
-      if (enforceCodeFreeze && !label.includes(codeFreezeBranchName)) {
+      if (enforceCodeFreeze && !targetBranch.includes(codeFreezeBranchName)) {
         return log(context, `${number} is not pointing towards the code freeze branch. It will not be merged`);
       }
 

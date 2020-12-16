@@ -43,18 +43,18 @@ function fixturePR({
   number,
   mergeable_state,
   labelled,
-  branchLabel = "master",
+  targetBranch = "master",
 }: {
   number: number;
   mergeable_state: string;
   labelled: boolean;
-  branchLabel?: string;
+  targetBranch?: string;
 }): any {
   const pr = {
     number,
     head: {
       sha: `pr-${number}-sha-head`,
-      label: `github:${branchLabel}`,
+      label: `github:${targetBranch}`,
     },
     labels: [
       {
@@ -487,7 +487,7 @@ describe("steward-bot: merge", () => {
 
       nock("https://api.github.com")
         .get("/repos/repo-owner/repo-name/pulls/166")
-        .reply(200, fixturePR({ number: 166, mergeable_state: "unknown", labelled: true, branchLabel: "test-freeze" }));
+        .reply(200, fixturePR({ number: 166, mergeable_state: "unknown", labelled: true, targetBranch: "test-freeze" }));
 
       nock("https://api.github.com")
         .get("/repos/repo-owner/repo-name/commits/pr-166-sha-head/status")
