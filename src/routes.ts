@@ -24,10 +24,10 @@ export function routes(cacheState: CacheState, repos: Repos, root: string, route
 <html>
 <body>
 <h1>Merge Bot Settings</h1>
-<strong>Code freeze status: ${firstRepo ? firstRepo.enforceCodeFreeze : "unknown"}</strong>
+<strong>Code freeze status: ${firstRepo ? firstRepo.enforceCodeFreeze : "No repos configured"}</strong>
 <br/>
 <span style="color:red;font-weight:bold;">Warning: This affects ALL repositories using the PR Bot. Notify all repository owners before you enforce code freeze</span>
-<form method="post" action="${root}/codeFreeze">
+<form method="post" action="${root}/all/codeFreeze">
 <button name="enforceCodeFreeze">${
       firstRepo && firstRepo.enforceCodeFreeze ? "Disable code freeze enforcement" : "Enforce code freeze"
     }</button>
@@ -80,14 +80,21 @@ rate limit remaining: ${cacheState.remainingLimit} out of ${cacheState.rateLimit
     }
     res.redirect(root);
   });
-  router.post("/codeFreeze", (req, res) => {
+  router.post("/:repoName/codeFreeze", (req, res) => {
     const { codeFreezeBranchName } = req.body;
+    const { repoName } = req.params;
 
-    Object.keys(repos).forEach((repoName) => {
-      repos[repoName].enforceCodeFreeze = !repos[repoName].enforceCodeFreeze;
-      if (codeFreezeBranchName)
-        repos[repoName].codeFreezeBranchName = repos[repoName].codeFreezeBranchName = codeFreezeBranchName;
-    });
+    if (repoName === "all") {
+      Object.keys(repos).forEach((repoName) => {
+        repos[repoName].enforceCodeFreeze = !repos[repoName].enforceCodeFreeze;
+        if (codeFreezeBranchName) repos[repoName].codeFreezeBranchName = codeFreezeBranchName;
+      });
+      if (Object.keys(repos).length)
+        req.log(
+          `changed all repository enforceCodeFreeze values to ${!repos[repoName]
+            .enforceCodeFreeze} and changed the code freeze branch name to ${codeFreezeBranchName}`
+        );
+    }
 
     res.redirect(root);
   });

@@ -371,7 +371,7 @@ describe("steward-bot: merge", () => {
       expect(appRepos["repo-name"].proposedTrain).toEqual([123, 166]);
     });
 
-    test("should add branch to train to anything if enforceCodeFreeze is on and codeFreezeBranchName is unset ", async () => {
+    test("should not add branch to train if enforceCodeFreeze is on and codeFreezeBranchName is unset", async () => {
       probot = new Probot({ id: 1, cert: mockCert });
 
       const app = Merge(cacheState, { mutate: true, debug: false, appName: "steward-bot", enforceCodeFreeze: true });
@@ -410,10 +410,10 @@ describe("steward-bot: merge", () => {
       );
 
       await appRepos["repo-name"].queue.onIdle();
-      expect(appRepos["repo-name"].proposedTrain).toEqual([166]);
+      expect(appRepos["repo-name"].proposedTrain).toEqual([]);
     });
 
-    test("should not add branch to train if branch merges to master and enforceCodeFreeze is on and codeFreezeBranchName is set to something that isn't master", async () => {
+    test("should not add branch to train if branch target name is 'master' and enforceCodeFreeze is on and codeFreezeBranchName is set to something that isn't 'master'", async () => {
       probot = new Probot({ id: 1, cert: mockCert });
 
       const app = Merge(cacheState, {
@@ -461,7 +461,7 @@ describe("steward-bot: merge", () => {
       expect(appRepos["repo-name"].proposedTrain).toEqual([]);
     });
 
-    test('should add branch to train if branch merges to "test-freeze" and enforceCodeFreeze is on and codeFreezeBranchName is set to "test-freeze"', async () => {
+    test('should add branch to train if branch target name is "test-freeze" and enforceCodeFreeze is on and codeFreezeBranchName is set to "test-freeze"', async () => {
       probot = new Probot({ id: 1, cert: mockCert });
 
       const app = Merge(cacheState, {
@@ -487,7 +487,10 @@ describe("steward-bot: merge", () => {
 
       nock("https://api.github.com")
         .get("/repos/repo-owner/repo-name/pulls/166")
-        .reply(200, fixturePR({ number: 166, mergeable_state: "unknown", labelled: true, targetBranch: "test-freeze" }));
+        .reply(
+          200,
+          fixturePR({ number: 166, mergeable_state: "unknown", labelled: true, targetBranch: "test-freeze" })
+        );
 
       nock("https://api.github.com")
         .get("/repos/repo-owner/repo-name/commits/pr-166-sha-head/status")
