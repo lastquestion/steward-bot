@@ -89,11 +89,12 @@ rate limit remaining: ${cacheState.remainingLimit} out of ${cacheState.rateLimit
         repos[repoName].enforceCodeFreeze = !repos[repoName].enforceCodeFreeze;
         repos[repoName].codeFreezeBranchName = codeFreezeBranchName;
       });
-      if (Object.keys(repos).length)
+      if (Object.keys(repos).length) {
+        const firstRepo = repos[Object.keys(repos)[0]];
         req.log(
-          `changed all repository enforceCodeFreeze values to ${!repos[repoName]
-            .enforceCodeFreeze} and changed the code freeze branch name to ${codeFreezeBranchName}`
+          `changed all repository enforceCodeFreeze values to ${firstRepo.enforceCodeFreeze} and changed the code freeze branch name to ${codeFreezeBranchName}`
         );
+      }
     }
 
     res.redirect(root);

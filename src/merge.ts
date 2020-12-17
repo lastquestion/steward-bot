@@ -148,11 +148,11 @@ function repo(config: Config): Repo {
         const anyPending = statuses.some((status) => status.state == "pending");
 
         // Branch names are in the format 'mergeLocation:branchName'
-        const matchesCodeFreezeBranch = targetBranch.split(":")[1] === config.codeFreezeBranchName;
-        if (config.enforceCodeFreeze && !matchesCodeFreezeBranch) {
+        const matchesCodeFreezeBranch = targetBranch.split(":")[1] === codeFreezeBranchName;
+        if (enforceCodeFreeze && !matchesCodeFreezeBranch) {
           log(
             context,
-            `${number} is not pointing towards the code freeze branch ${config.codeFreezeBranchName}. It will not be merged`
+            `${number} is not pointing towards the code freeze branch ${codeFreezeBranchName}. It will not be merged`
           );
         } else {
           // if it's labeled,
@@ -215,8 +215,8 @@ function repo(config: Config): Repo {
       });
 
       // Branch names are in the format 'merge-target:branch-name'
-      const matchesCodeFreezeBranch = targetBranch.split(":")[1] === config.codeFreezeBranchName;
-      if (config.enforceCodeFreeze && matchesCodeFreezeBranch) {
+      const matchesCodeFreezeBranch = targetBranch.split(":")[1] === codeFreezeBranchName;
+      if (enforceCodeFreeze && matchesCodeFreezeBranch) {
         return log(context, `${number} is not pointing towards the code freeze branch. It will not be merged`);
       }
 
