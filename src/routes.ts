@@ -87,7 +87,7 @@ rate limit remaining: ${cacheState.remainingLimit} out of ${cacheState.rateLimit
     if (repoName === "all") {
       Object.keys(repos).forEach((repoName) => {
         repos[repoName].enforceCodeFreeze = !repos[repoName].enforceCodeFreeze;
-        if (codeFreezeBranchName) repos[repoName].codeFreezeBranchName = codeFreezeBranchName;
+        repos[repoName].codeFreezeBranchName = codeFreezeBranchName;
       });
       if (Object.keys(repos).length)
         req.log(

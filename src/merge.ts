@@ -37,6 +37,8 @@ function repo(config: Config): Repo {
 
   let mergingEnabled = config.mutate;
   let enabled = config.mutate;
+  let enforceCodeFreeze = config.enforceCodeFreeze;
+  let codeFreezeBranchName = config.codeFreezeBranchName;
 
   const log = (context: Context, str: string): void => {
     decisionLog.push(str);
@@ -270,6 +272,20 @@ function repo(config: Config): Repo {
     },
     set mergingEnabled(state) {
       mergingEnabled = state;
+    },
+
+    get enforceCodeFreeze(): boolean {
+      return enforceCodeFreeze;
+    },
+    set enforceCodeFreeze(state) {
+      enforceCodeFreeze = state;
+    },
+
+    get codeFreezeBranchName(): string | undefined {
+      return codeFreezeBranchName;
+    },
+    set codeFreezeBranchName(state) {
+      codeFreezeBranchName = state;
     },
 
     on(action: string, context: Context): void {
