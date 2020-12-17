@@ -19,6 +19,7 @@ const cachedOctokit = ProbotOctokit.plugin(cache.plugin as any);
 const config = {
   mutate: !!process.env.MUTATE,
   debug: !!process.env.DEBUG,
+  enforceCodeFreeze: !!process.env.ENFORCE_CODE_FREEZE,
   appName: process.env.BOTNAME || "steward-bot",
 };
 

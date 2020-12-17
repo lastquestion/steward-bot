@@ -10,6 +10,8 @@ export interface Repo {
 
   enabled: boolean;
   mergingEnabled: boolean;
+  enforceCodeFreeze?: boolean;
+  codeFreezeBranchName?: string;
 }
 
 export type Repos = { [repo: string]: Repo };

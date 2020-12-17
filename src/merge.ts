@@ -10,6 +10,8 @@ import { CacheState } from "./cache";
 type Config = {
   mutate: boolean;
   debug: boolean;
+  enforceCodeFreeze: boolean;
+  codeFreezeBranchName?: string;
   appName: string;
   appRoute?: string;
 };
@@ -35,6 +37,8 @@ function repo(config: Config): Repo {
 
   let mergingEnabled = config.mutate;
   let enabled = config.mutate;
+  let enforceCodeFreeze = config.enforceCodeFreeze;
+  let codeFreezeBranchName = config.codeFreezeBranchName;
 
   const log = (context: Context, str: string): void => {
     decisionLog.push(str);
@@ -131,35 +135,49 @@ function repo(config: Config): Repo {
             data: { statuses },
           },
           pr: {
-            data: { number, labels, mergeable_state },
+            data: {
+              number,
+              labels,
+              mergeable_state,
+              head: { label: targetBranch },
+            },
           },
         } = elem;
 
         const mergeLabel = labels.find((label) => label.name == "ready to merge");
         const anyPending = statuses.some((status) => status.state == "pending");
 
-        // if it's labeled,
-        if (mergeLabel) {
-          // and we're sure it can be merged...
-          if (mergeable_state == "clean") {
-            // prepare to merge it
-            readyToMerge.push(number);
-            newTrain.push(number);
-          } else {
-            // or, if we can't merge, but some tests are pending,
-            // maybe it could be mergeable later?
-            if (anyPending) {
+        // Branch names are in the format 'mergeLocation:branchName'
+        const matchesCodeFreezeBranch = targetBranch.split(":")[1] === codeFreezeBranchName;
+        if (enforceCodeFreeze && !matchesCodeFreezeBranch) {
+          log(
+            context,
+            `${number} is not pointing towards the code freeze branch ${codeFreezeBranchName}. It will not be merged`
+          );
+        } else {
+          // if it's labeled,
+          if (mergeLabel) {
+            // and we're sure it can be merged...
+            if (mergeable_state == "clean") {
+              // prepare to merge it
+              readyToMerge.push(number);
               newTrain.push(number);
+            } else {
+              // or, if we can't merge, but some tests are pending,
+              // maybe it could be mergeable later?
+              if (anyPending) {
+                newTrain.push(number);
+              }
             }
           }
-        }
 
-        log(
-          context,
-          `${number} from the merge train: pending checks: ${anyPending ? "pending" : "none pending"} label: ${
-            mergeLabel ? "labeled" : "not labeled"
-          } ${mergeable_state}`
-        );
+          log(
+            context,
+            `${number} from the merge train: pending checks: ${anyPending ? "pending" : "none pending"} label: ${
+              mergeLabel ? "labeled" : "not labeled"
+            } ${mergeable_state}`
+          );
+        }
       }
 
       log(context, `after recalculating, train: [${updatedTrain}] becomes new train [${newTrain}]`);
@@ -185,11 +203,22 @@ function repo(config: Config): Repo {
       }
 
       const {
-        data: { number, labels, mergeable_state },
+        data: {
+          number,
+          labels,
+          mergeable_state,
+          head: { label: targetBranch },
+        },
       } = await context.github.pulls.get({
         ...context.repo(),
         pull_number,
       });
+
+      // Branch names are in the format 'merge-target:branch-name'
+      const matchesCodeFreezeBranch = targetBranch.split(":")[1] === codeFreezeBranchName;
+      if (enforceCodeFreeze && matchesCodeFreezeBranch) {
+        return log(context, `${number} is not pointing towards the code freeze branch. It will not be merged`);
+      }
 
       const mergeLabel = labels.find((label) => label.name == "ready to merge");
 
@@ -243,6 +272,20 @@ function repo(config: Config): Repo {
     },
     set mergingEnabled(state) {
       mergingEnabled = state;
+    },
+
+    get enforceCodeFreeze(): boolean {
+      return enforceCodeFreeze;
+    },
+    set enforceCodeFreeze(state) {
+      enforceCodeFreeze = state;
+    },
+
+    get codeFreezeBranchName(): string | undefined {
+      return codeFreezeBranchName;
+    },
+    set codeFreezeBranchName(state) {
+      codeFreezeBranchName = state;
     },
 
     on(action: string, context: Context): void {
