@@ -1,6 +1,6 @@
 {
   "name": "steward-bot",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "description": "Steward: help manage your PR flow",
   "author": "Lin Xu <lin@lastquestion.org>",
   "license": "MIT",
