@@ -54,6 +54,8 @@ function fixturePR({
     number,
     head: {
       sha: `pr-${number}-sha-head`,
+    },
+    base:{
       label: `github:${targetBranch}`,
     },
     labels: [
