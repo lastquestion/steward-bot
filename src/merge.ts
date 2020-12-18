@@ -139,7 +139,7 @@ function repo(config: Config): Repo {
               number,
               labels,
               mergeable_state,
-              head: { label: targetBranch },
+              base: { label: targetBranch },
             },
           },
         } = elem;
@@ -207,7 +207,7 @@ function repo(config: Config): Repo {
           number,
           labels,
           mergeable_state,
-          head: { label: targetBranch },
+          base: { label: targetBranch },
         },
       } = await context.github.pulls.get({
         ...context.repo(),
